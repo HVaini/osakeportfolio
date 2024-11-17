@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ portfolio.name }}</title>
+</head>
+<body>
+<h1>{{ portfolio.name }}</h1>
+
+<h2>Portfolion osakkeet</h2>
+<table>
+    <tr>
+        <th>Symboli</th>
+        <th>Nimi</th>
+        <th>Määrä</th>
+        <th>Hinta</th>
+        <th>Kokonaisarvo</th>
+    </tr>
+    {% for stock in stocks %}
+    <tr>
+        <td>{{ stock.symbol }}</td>
+        <td>{{ stock.name }}</td>
+        <td>{{ stock.quantity }}</td>
+        <td>{{ stock.price | round(2) }}</td>
+        <td>{{ stock.total_value | round(2) }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<a href="/portfolios"><button>Takaisin portfolioihin</button></a>
+
+<h2>Lisää osake portfolioon</h2>
+<form action="/add_stock_to_portfolio" method="POST">
+    <input type="hidden" name="portfolio_id" value="{{ portfolio.id }}">
+    <label for="stock_id">Valitse osake:</label>
+    <select name="stock_id" required>
+        {% for stock in all_stocks %}
+        <option value="{{ stock.id }}">{{ stock.name }} ({{ stock.symbol }})</option>
+        {% endfor %}
+    </select>
+    <p>Määrä:<br><input type="number" name="quantity" min="1" required></p>
+    <button type="submit">Lisää osake</button>
+</form>
+
+
+
+    <a href="/portfolios"><button>Takaisin portfolioihin</button></a>
+</body>
+</html>
