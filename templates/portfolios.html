@@ -1,27 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfoliot</title>
-</head>
-<body>
-    <h1>Portfoliosi</h1>
+{% extends "layout.html" %}
 
-    <ul>
-        {% for portfolio in portfolios %}
-        <li>
-            <a href="/portfolio/{{ portfolio.id }}">{{ portfolio.name }}</a>
-        </li>
-        {% endfor %}
-    </ul>
+{% block title %}Portfoliot{% endblock %}
 
-    <h2>Luo uusi portfolio</h2>
-    <form action="/create_portfolio" method="POST">
-        <p>Uuden portfolion nimi:<br><input type="text" name="name" required></p>
-        <button type="submit">Luo portfolio</button>
-    </form>
+{% block content %}
+<h1>Portfoliosi</h1>
 
-    <a href="/logout"><button>Kirjaudu ulos</button></a>
-</body>
-</html>
+<ul>
+    {% for portfolio in portfolios %}
+    <li>
+        <a href="/portfolio/{{ portfolio.id }}">{{ portfolio.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+
+<h2>Luo uusi portfolio</h2>
+<form action="/create_portfolio" method="POST">
+    <p>Uuden portfolion nimi:<br><input type="text" name="name" required></p>
+    <button type="submit">Luo portfolio</button>
+</form>
+{% endblock %}

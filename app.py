@@ -174,3 +174,23 @@ def add_stock_to_portfolio():
 def index_alias():
     return redirect("/")
 
+@app.route("/stocks")
+def stocks():
+    if "username" not in session:
+        return redirect("/")
+    
+    order_by = request.args.get("order_by", "name")  
+    order_direction = request.args.get("order_direction", "asc")  
+
+    if order_by not in ["name", "symbol", "price"]:
+        order_by = "name"
+    if order_direction not in ["asc", "desc"]:
+        order_direction = "asc"
+    
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT id, symbol, name, price FROM stocks ORDER BY {order_by} {order_direction}")
+    stocks = cursor.fetchall()
+    cursor.close()
+
+    return render_template("stocks.html", stocks=stocks, order_by=order_by, order_direction=order_direction)
+

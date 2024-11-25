@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block title %}Osakkeet{% endblock %}
+
+{% block content %}
+<h1>Osakkeet</h1>
+<table border="1">
+    <thead>
+        <tr>
+            <th><a href="/stocks?order_by=symbol">Symboli</a></th>
+            <th><a href="/stocks?order_by=name">Nimi</a></th>
+            <th><a href="/stocks?order_by=price">Hinta</a></th>
+            <th>Lisää portfolioon</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stock in stocks %}
+        <tr>
+            <td>{{ stock.symbol }}</td>
+            <td>{{ stock.name }}</td>
+            <td>{{ stock.price | round(2) }}</td>
+            <td>
+                <form action="/add_stock_to_portfolio" method="POST">
+                    <input type="hidden" name="portfolio_id" value="{{ request.args.get('portfolio_id') }}">
+                    <input type="hidden" name="stock_id" value="{{ stock.id }}">
+                    <input type="number" name="quantity" min="1" required placeholder="Määrä">
+                    <button type="submit">Lisää</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

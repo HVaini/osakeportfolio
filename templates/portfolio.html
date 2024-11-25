@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ portfolio.name }}</title>
-</head>
-<body>
+{% extends "layout.html" %}
+
+{% block content %}
 <h1>{{ portfolio.name }}</h1>
 
 <h2>Portfolion osakkeet</h2>
@@ -31,6 +26,7 @@
 <a href="/portfolios"><button>Takaisin portfolioihin</button></a>
 
 <h2>Lisää osake portfolioon</h2>
+<a href="/stocks?portfolio_id={{ portfolio.id }}"><button>Lisää osake portfolioon</button></a>
 <form action="/add_stock_to_portfolio" method="POST">
     <input type="hidden" name="portfolio_id" value="{{ portfolio.id }}">
     <label for="stock_id">Valitse osake:</label>
@@ -43,8 +39,5 @@
     <button type="submit">Lisää osake</button>
 </form>
 
-
-
-    <a href="/portfolios"><button>Takaisin portfolioihin</button></a>
-</body>
-</html>
+<a href="/portfolios"><button>Takaisin portfolioihin</button></a>
+{% endblock %}
