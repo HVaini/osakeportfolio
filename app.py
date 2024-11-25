@@ -22,8 +22,12 @@ def index():
 
 @app.route("/login", methods=["POST"])
 def login():
-    username = request.form["username"]
-    password = request.form["password"]
+    username = request.form["username"].strip()
+    password = request.form["password"].strip()
+
+    if not username or not password:
+        return render_template("index.html", error="Käyttäjänimi ja salasana ovat pakollisia")
+
     cursor = conn.cursor()
     cursor.execute("SELECT id, password_hash FROM users WHERE username = %s", (username,))
     user = cursor.fetchone()
@@ -45,10 +49,19 @@ def logout():
 
 @app.route("/register", methods=["POST"])
 def register():
-    username = request.form["username"]
-    password = request.form["password"]
-    hashed_password = generate_password_hash(password)
+    username = request.form["username"].strip()
+    password = request.form["password"].strip()
 
+    if not username or not password:
+        return render_template("index.html", error="Käyttäjänimi ja salasana ovat pakollisia")
+    
+    if len(username) < 3:
+        return render_template("index.html", error="Käyttäjänimen tulee olla vähintään 3 merkkiä pitkä")
+    # testailun helpottamisen vuoksi salasanan minimipituus on vielä 3 merkkiä, muutetaan lopulliseen versioon	
+    if len(password) < 3: 
+        return render_template("index.html", error="Salasanan tulee olla vähintään 3 merkkiä pitkä")
+
+    hashed_password = generate_password_hash(password)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -63,6 +76,7 @@ def register():
         cursor.close()
 
     return redirect("/")
+
 
 
 @app.route("/portfolios")
@@ -126,35 +140,30 @@ def portfolio(portfolio_id):
 
     return render_template("portfolio.html", portfolio=portfolio, stocks=stocks, all_stocks=all_stocks)
 
-
 @app.route("/add_stock_to_portfolio", methods=["POST"])
 def add_stock_to_portfolio():
-    
     portfolio_id = request.form.get("portfolio_id")
     stock_id = request.form.get("stock_id")
     quantity = request.form.get("quantity")
 
-    print("Portfolio ID:", portfolio_id)
-    print("Stock ID:", stock_id)
-    print("Quantity:", quantity)
-    print("Lomakkeelta saatu portfolio_id:", portfolio_id)	
-    
     if not portfolio_id or not stock_id or not quantity:
-        return "Kaikkia kenttiä ei ole täytetty" 
+        return "Kaikkia kenttiä ei ole täytetty"
 
-    #try:
-        #quantity = int(quantity)  
-    #except ValueError:
-        #return "Määrän täytyy olla numero"
+    try:
+        quantity = int(quantity)
+        if quantity <= 0:
+            return "Määrän täytyy olla vähintään 1"
+        if quantity > 10^6:
+            return "Määrä ei voi ylittää 1 000 000"
+    except ValueError:
+        return "Määrän täytyy olla numero"
 
-    # Lisää osake portfolioon
     cursor = conn.cursor()
     try:
         cursor.execute(
             """
             INSERT INTO portfolio_stocks (portfolio_id, stock_id, quantity)
             VALUES (%s, %s, %s)
-            
             ON CONFLICT (portfolio_id, stock_id)
             DO UPDATE SET quantity = portfolio_stocks.quantity + EXCLUDED.quantity
             """,
@@ -168,6 +177,7 @@ def add_stock_to_portfolio():
         cursor.close()
 
     return redirect(f"/portfolio/{portfolio_id}")
+
 
 
 @app.route("/index")
