@@ -1,17 +1,25 @@
-from flask import Flask, redirect, render_template, request, session
 from os import getenv
+from decimal import Decimal
+
 import psycopg2
 from psycopg2 import extras
+import yfinance as yf
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask import Flask, redirect, render_template, request, session
 
-# lisää .env tiedostoon alla olevat (oma SECRET_KEY kurssimateriaalin ohjeiden mukaan sekä oma tietokanta DATABASE_URL)
+# lisää .env tiedostoon oma SECRET_KEY sekä oma tietokanta DATABASE_URL
 app = Flask(__name__)
-app.secret_key = getenv("SECRET_KEY")  
-app.config["SESSION_PERMANENT"] = False  
+app.secret_key = getenv("SECRET_KEY")
+app.config["SESSION_PERMANENT"] = False
 
 # yhdistys tietokantaan
 DATABASE_URL = getenv("DATABASE_URL")
 conn = psycopg2.connect(DATABASE_URL, cursor_factory=extras.DictCursor)
+
+def get_stock_price(symbol):
+    stock = yf.Ticker(symbol)
+    data = stock.history(period="1d")
+    return data['Close'][-1]
 
 @app.route("/")
 def index():
@@ -57,8 +65,8 @@ def register():
     
     if len(username) < 3:
         return render_template("index.html", error="Käyttäjänimen tulee olla vähintään 3 merkkiä pitkä")
-    # testailun helpottamisen vuoksi salasanan minimipituus on vielä 3 merkkiä, muutetaan lopulliseen versioon	
-    if len(password) < 3: 
+    # testailun helpottamisen vuoksi salasanan minimipituus on vielä 3 merkkiä, muutetaan lopulliseen versioon
+    if len(password) < 3:
         return render_template("index.html", error="Salasanan tulee olla vähintään 3 merkkiä pitkä")
 
     hashed_password = generate_password_hash(password)
@@ -76,7 +84,6 @@ def register():
         cursor.close()
 
     return redirect("/")
-
 
 
 @app.route("/portfolios")
@@ -123,51 +130,87 @@ def portfolio(portfolio_id):
     if not portfolio:
         return redirect("/portfolios")
     
-    # Hae portfolioon lisätyt osakkeet
     cursor.execute("""
-        SELECT s.id, s.symbol, s.name, ps.quantity, s.price, 
-               (ps.quantity * s.price) AS total_value
-        FROM portfolio_stocks ps
-        JOIN stocks s ON ps.stock_id = s.id
-        WHERE ps.portfolio_id = %s
+        SELECT s.id, s.symbol, s.name, 
+               SUM(t.quantity) AS total_quantity,
+               SUM(t.quantity * t.purchase_price) / NULLIF(SUM(t.quantity), 0) AS average_price
+        FROM stock_transactions t
+        JOIN stocks s ON t.stock_id = s.id
+        WHERE t.portfolio_id = %s
+        GROUP BY s.id, s.symbol, s.name
     """, (portfolio_id,))
     stocks = cursor.fetchall()
 
+    updated_stocks = []
+    for stock in stocks:
+        real_time_price = None
+        try:
+            real_time_price = get_stock_price(stock["symbol"])
+        except Exception:
+            pass
+
+        real_time_price_decimal = Decimal(real_time_price) if real_time_price is not None else None
+        stock_return = (
+            (real_time_price_decimal - stock["average_price"]) * stock["total_quantity"]
+            if real_time_price_decimal is not None and stock["average_price"] is not None
+            else None
+        )
+
+        updated_stocks.append({
+            "id": stock["id"],
+            "symbol": stock["symbol"],
+            "name": stock["name"],
+            "total_quantity": stock["total_quantity"],
+            "average_price": stock["average_price"],
+            "real_time_price": real_time_price,
+            "total_value": real_time_price * stock["total_quantity"] if real_time_price is not None else None,
+            "stock_return": stock_return
+        })
+    
     # kaikki tietokannan osakkeet valikkoon
     cursor.execute("SELECT id, symbol, name FROM stocks")
     all_stocks = cursor.fetchall()
     cursor.close()
 
-    return render_template("portfolio.html", portfolio=portfolio, stocks=stocks, all_stocks=all_stocks)
+    return render_template(
+        "portfolio.html",
+        portfolio=portfolio,
+        stocks=updated_stocks,
+        all_stocks=all_stocks,
+    )
+
 
 @app.route("/add_stock_to_portfolio", methods=["POST"])
 def add_stock_to_portfolio():
     portfolio_id = request.form.get("portfolio_id")
     stock_id = request.form.get("stock_id")
     quantity = request.form.get("quantity")
+    purchase_price = request.form.get("purchase_price")
 
-    if not portfolio_id or not stock_id or not quantity:
+    if not portfolio_id or not stock_id or not quantity or not purchase_price:
         return "Kaikkia kenttiä ei ole täytetty"
 
     try:
         quantity = int(quantity)
+        purchase_price = float(purchase_price)
         if quantity <= 0:
             return "Määrän täytyy olla vähintään 1"
         if quantity > 10^6:
             return "Määrä ei voi ylittää 1 000 000"
+        if purchase_price <= 0:
+            return "Oston hinnan täytyy olla positiivinen"
     except ValueError:
-        return "Määrän täytyy olla numero"
+        return "Virheellinen määrä tai hinta"
 
     cursor = conn.cursor()
     try:
+        # Lisää uusi osto stock_transactions-tauluun
         cursor.execute(
             """
-            INSERT INTO portfolio_stocks (portfolio_id, stock_id, quantity)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (portfolio_id, stock_id)
-            DO UPDATE SET quantity = portfolio_stocks.quantity + EXCLUDED.quantity
+            INSERT INTO stock_transactions (portfolio_id, stock_id, quantity, purchase_price)
+            VALUES (%s, %s, %s, %s)
             """,
-            (portfolio_id, stock_id, quantity),
+            (portfolio_id, stock_id, quantity, purchase_price),
         )
         conn.commit()
     except Exception as e:
@@ -179,18 +222,18 @@ def add_stock_to_portfolio():
     return redirect(f"/portfolio/{portfolio_id}")
 
 
-
 @app.route("/index")
 def index_alias():
     return redirect("/")
+
 
 @app.route("/stocks")
 def stocks():
     if "username" not in session:
         return redirect("/")
     
-    order_by = request.args.get("order_by", "name")  
-    order_direction = request.args.get("order_direction", "asc")  
+    order_by = request.args.get("order_by", "name")
+    order_direction = request.args.get("order_direction", "asc")
 
     if order_by not in ["name", "symbol", "price"]:
         order_by = "name"
@@ -200,7 +243,26 @@ def stocks():
     cursor = conn.cursor()
     cursor.execute(f"SELECT id, symbol, name, price FROM stocks ORDER BY {order_by} {order_direction}")
     stocks = cursor.fetchall()
+
+    stocks_with_prices = []
+    for stock in stocks:
+        stock_dict = dict(stock)
+        try:
+            stock_dict["real_time_price"] = get_stock_price(stock_dict["symbol"])
+        except Exception:
+            stock_dict["real_time_price"] = None
+        stocks_with_prices.append(stock_dict)
+
+    # Hae käyttäjän kaikki salkut
+    cursor.execute("SELECT id, name FROM portfolios WHERE user_id = %s", (session["user_id"],))
+    portfolios = cursor.fetchall()
+
     cursor.close()
 
-    return render_template("stocks.html", stocks=stocks, order_by=order_by, order_direction=order_direction)
-
+    return render_template(
+        "stocks.html", 
+        stocks=stocks_with_prices, 
+        order_by=order_by, 
+        order_direction=order_direction, 
+        portfolios=portfolios
+    )

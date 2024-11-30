@@ -9,16 +9,32 @@
         <th>Symboli</th>
         <th>Nimi</th>
         <th>Määrä</th>
-        <th>Hinta</th>
-        <th>Kokonaisarvo</th>
+        <th>Keskimääräinen ostohinta (€)</th>
+        <th>Markkinahinta (€)</th>
+        <th>Kokonaisarvo (€)</th>
+        <th>Osakekohtainen tuotto (€)</th>
     </tr>
     {% for stock in stocks %}
     <tr>
         <td>{{ stock.symbol }}</td>
         <td>{{ stock.name }}</td>
-        <td>{{ stock.quantity }}</td>
-        <td>{{ stock.price | round(2) }}</td>
+        <td>{{ stock.total_quantity }}</td>
+        <td>{{ stock.average_price | default(0) | round(2) }}</td>
+        <td>
+            {% if stock.real_time_price is not none %}
+                {{ stock.real_time_price | round(2) }}
+            {% else %}
+                Ei saatavilla
+            {% endif %}
+        </td>
         <td>{{ stock.total_value | round(2) }}</td>
+        <td>
+            {% if stock.stock_return is not none %}
+                {{ stock.stock_return | round(2) }}
+            {% else %}
+                Ei saatavilla
+            {% endif %}
+        </td>
     </tr>
     {% endfor %}
 </table>
@@ -36,8 +52,12 @@
         {% endfor %}
     </select>
     <p>Määrä:<br><input type="number" name="quantity" min="1" required></p>
+    <p>Oston hinta (€):<br><input type="number" name="purchase_price" min="0.01" step="0.01" required></p>
     <button type="submit">Lisää osake</button>
 </form>
+
+<h2>Portfolion kokonaisarvo</h2>
+<p><strong>Kokonaisarvo:</strong> €{{ stocks|sum(attribute="total_value") | round(2) }}</p>
 
 <a href="/portfolios"><button>Takaisin portfolioihin</button></a>
 {% endblock %}

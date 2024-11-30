@@ -4,12 +4,19 @@
 
 {% block content %}
 <h1>Osakkeet</h1>
+
+{% if request.args.get("portfolio_id") %}
+    <p>Lisätään osakkeita portfolioon: <strong>{{ portfolio_name }}</strong></p>
+{% else %}
+    <p>Valitse salkku, johon osakkeet lisätään.</p>
+{% endif %}
+
 <table border="1">
     <thead>
         <tr>
             <th><a href="/stocks?order_by=symbol">Symboli</a></th>
             <th><a href="/stocks?order_by=name">Nimi</a></th>
-            <th><a href="/stocks?order_by=price">Hinta</a></th>
+            <th>Reaaliaikainen hinta</th>
             <th>Lisää portfolioon</th>
         </tr>
     </thead>
@@ -18,12 +25,29 @@
         <tr>
             <td>{{ stock.symbol }}</td>
             <td>{{ stock.name }}</td>
-            <td>{{ stock.price | round(2) }}</td>
+            <td>
+                {% if stock.real_time_price is not none %}
+                    {{ stock.real_time_price | round(2) }}
+                {% else %}
+                    Ei saatavilla
+                {% endif %}
+            </td>
             <td>
                 <form action="/add_stock_to_portfolio" method="POST">
-                    <input type="hidden" name="portfolio_id" value="{{ request.args.get('portfolio_id') }}">
+                    {% if not request.args.get("portfolio_id") %}
+                        <label for="portfolio_id">Valitse salkku:</label>
+                        <select name="portfolio_id" required>
+                            {% for portfolio in portfolios %}
+                            <option value="{{ portfolio.id }}">{{ portfolio.name }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <input type="hidden" name="portfolio_id" value="{{ request.args.get('portfolio_id') }}">
+                    {% endif %}
+                    
                     <input type="hidden" name="stock_id" value="{{ stock.id }}">
-                    <input type="number" name="quantity" min="1" required placeholder="Määrä">
+                    <p>Määrä:<br><input type="number" name="quantity" min="1" required></p>
+                    <p>Ostohinta (€):<br><input type="number" name="purchase_price" min="0.01" step="0.01" required></p>
                     <button type="submit">Lisää</button>
                 </form>
             </td>
@@ -31,4 +55,8 @@
         {% endfor %}
     </tbody>
 </table>
+
+{% if request.args.get("portfolio_id") %}
+    <a href="/portfolio/{{ request.args.get('portfolio_id') }}"><button>Takaisin portfolioon</button></a>
+{% endif %}
 {% endblock %}
