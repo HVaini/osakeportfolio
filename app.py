@@ -195,7 +195,7 @@ def add_stock_to_portfolio():
         purchase_price = float(purchase_price)
         if quantity <= 0:
             return "Määrän täytyy olla vähintään 1"
-        if quantity > 10^6:
+        if quantity > 10**6:
             return "Määrä ei voi ylittää 1 000 000"
         if purchase_price <= 0:
             return "Oston hinnan täytyy olla positiivinen"
