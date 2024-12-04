@@ -266,3 +266,28 @@ def stocks():
         order_direction=order_direction, 
         portfolios=portfolios
     )
+
+@app.route("/remove_stock", methods=["POST"])
+def remove_stock():
+    portfolio_id = request.form.get("portfolio_id")
+    stock_id = request.form.get("stock_id")
+
+    if not portfolio_id or not stock_id:
+        return "Kaikkia kenttiä ei ole täytetty"
+
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            DELETE FROM stock_transactions
+            WHERE portfolio_id = %s AND stock_id = %s
+        """, (portfolio_id, stock_id))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return f"Virhe: {e}"
+    finally:
+        cursor.close()
+
+    
+    return redirect(f"/portfolio/{portfolio_id}")
+

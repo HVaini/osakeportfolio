@@ -13,6 +13,7 @@
         <th>Markkinahinta (€)</th>
         <th>Kokonaisarvo (€)</th>
         <th>Osakekohtainen tuotto (€)</th>
+        <th>Toiminnot</th>
     </tr>
     {% for stock in stocks %}
     <tr>
@@ -34,6 +35,13 @@
             {% else %}
                 Ei saatavilla
             {% endif %}
+        </td>
+        <td>
+            <form action="/remove_stock" method="POST" style="display:inline;">
+                <input type="hidden" name="portfolio_id" value="{{ portfolio.id }}">
+                <input type="hidden" name="stock_id" value="{{ stock.id }}">
+                <button type="submit">Poista</button>
+            </form>
         </td>
     </tr>
     {% endfor %}
