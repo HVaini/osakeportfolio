@@ -44,8 +44,10 @@
                     {% else %}
                         <input type="hidden" name="portfolio_id" value="{{ request.args.get('portfolio_id') }}">
                     {% endif %}
-                    
+
                     <input type="hidden" name="stock_id" value="{{ stock.id }}">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+
                     <p>Määrä:<br><input type="number" name="quantity" min="1" required></p>
                     <p>Ostohinta (€):<br><input type="number" name="purchase_price" min="0.01" step="0.01" required></p>
                     <button type="submit">Lisää</button>

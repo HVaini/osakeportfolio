@@ -15,6 +15,7 @@
 
 <h2>Luo uusi portfolio</h2>
 <form action="/create_portfolio" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
     <p>Uuden portfolion nimi:<br><input type="text" name="name" required></p>
     <button type="submit">Luo portfolio</button>
 </form>

@@ -40,6 +40,7 @@
             <form action="/remove_stock" method="POST" style="display:inline;">
                 <input type="hidden" name="portfolio_id" value="{{ portfolio.id }}">
                 <input type="hidden" name="stock_id" value="{{ stock.id }}">
+                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
                 <button type="submit">Poista</button>
             </form>
         </td>
@@ -53,6 +54,7 @@
 <a href="/stocks?portfolio_id={{ portfolio.id }}"><button>Lisää osake portfolioon</button></a>
 <form action="/add_stock_to_portfolio" method="POST">
     <input type="hidden" name="portfolio_id" value="{{ portfolio.id }}">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
     <label for="stock_id">Valitse osake:</label>
     <select name="stock_id" required>
         {% for stock in all_stocks %}

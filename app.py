@@ -1,6 +1,6 @@
 from os import getenv
 from decimal import Decimal
-
+import secrets
 import psycopg2
 from psycopg2 import extras
 import yfinance as yf
@@ -44,6 +44,7 @@ def login():
     if user and check_password_hash(user["password_hash"], password):
         session["username"] = username
         session["user_id"] = user["id"]
+        session["csrf_token"] = secrets.token_hex(16)
         return redirect("/portfolios")
     else:
         return render_template("index.html", error="Virheellinen käyttäjätunnus tai salasana")
@@ -101,6 +102,9 @@ def portfolios():
 
 @app.route("/create_portfolio", methods=["POST"])
 def create_portfolio():
+    if session["csrf_token"] != request.form["csrf_token"]:
+        abort(403)
+
     if "username" not in session:
         return redirect("/")
     
@@ -182,6 +186,9 @@ def portfolio(portfolio_id):
 
 @app.route("/add_stock_to_portfolio", methods=["POST"])
 def add_stock_to_portfolio():
+    if session["csrf_token"] != request.form["csrf_token"]:
+        abort(403)
+
     portfolio_id = request.form.get("portfolio_id")
     stock_id = request.form.get("stock_id")
     quantity = request.form.get("quantity")
@@ -269,6 +276,9 @@ def stocks():
 
 @app.route("/remove_stock", methods=["POST"])
 def remove_stock():
+    if session["csrf_token"] != request.form["csrf_token"]:
+        abort(403)
+
     portfolio_id = request.form.get("portfolio_id")
     stock_id = request.form.get("stock_id")
 
