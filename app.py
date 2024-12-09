@@ -5,7 +5,7 @@ import psycopg2
 from psycopg2 import extras
 import yfinance as yf
 from werkzeug.security import check_password_hash, generate_password_hash
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, flash
 
 # lisää .env tiedostoon oma SECRET_KEY sekä oma tietokanta DATABASE_URL
 app = Flask(__name__)
@@ -78,6 +78,7 @@ def register():
             (username, hashed_password),
         )
         conn.commit()
+        flash("Käyttäjätilin luonti onnistui. Voit nyt kirjautua sisään!")
     except psycopg2.IntegrityError:
         conn.rollback()
         return render_template("index.html", error="Käyttäjänimi on jo varattu")

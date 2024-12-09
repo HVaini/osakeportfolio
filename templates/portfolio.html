@@ -9,10 +9,10 @@
         <th>Symboli</th>
         <th>Nimi</th>
         <th>Määrä</th>
-        <th>Keskimääräinen ostohinta (€)</th>
-        <th>Markkinahinta (€)</th>
-        <th>Kokonaisarvo (€)</th>
-        <th>Osakekohtainen tuotto (€)</th>
+        <th>Keskimääräinen ostohinta</th>
+        <th>Markkinahinta</th>
+        <th>Kokonaisarvo</th>
+        <th>Osakekohtainen tuotto</th>
         <th>Toiminnot</th>
     </tr>
     {% for stock in stocks %}
@@ -50,10 +50,13 @@
 
 <a href="/portfolios"><button>Takaisin portfolioihin</button></a>
 
-<h2>Lisää osake portfolioon</h2>
-<a href="/stocks?portfolio_id={{ portfolio.id }}"><button>Lisää osake portfolioon</button></a>
+<hr style="margin: 20px 0; border: 1px solid #333;">
+
+<h2>Selaa osakelistaa</h2>
+<a href="/stocks?portfolio_id={{ portfolio.id }}"><button>osakkeet</button></a>
+<h2>Pikalisäys</h2>
+<p>Valitse osakkeita, joita haluat lisätä portfolioon.</p>
 <form action="/add_stock_to_portfolio" method="POST">
-    <input type="hidden" name="portfolio_id" value="{{ portfolio.id }}">
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
     <label for="stock_id">Valitse osake:</label>
     <select name="stock_id" required>
@@ -62,12 +65,7 @@
         {% endfor %}
     </select>
     <p>Määrä:<br><input type="number" name="quantity" min="1" required></p>
-    <p>Ostohinta (€):<br><input type="number" name="purchase_price" min="0.01" step="0.01" required></p>
-    <button type="submit">Lisää osake</button>
+    <p>Ostohinta:<br><input type="number" name="purchase_price" min="0.01" step="0.01" required></p>
+    <button type="submit">Lisää osake portfolioon</button>
 </form>
-
-<h2>Portfolion kokonaisarvo</h2>
-<p><strong>Kokonaisarvo:</strong> €{{ stocks|sum(attribute="total_value") | round(2) }}</p>
-
-<a href="/portfolios"><button>Takaisin portfolioihin</button></a>
 {% endblock %}
