@@ -28,7 +28,7 @@
                 Ei saatavilla
             {% endif %}
         </td>
-        <td>{{ stock.total_value | round(2) }}</td>
+        <td>{{ stock.total_value | default(0) | round(2) }}</td>
         <td>
             {% if stock.stock_return is not none %}
                 {{ stock.stock_return | round(2) }}
@@ -48,6 +48,9 @@
     {% endfor %}
 </table>
 
+<h2>Portfolion kokonaisarvo</h2>
+<p><strong>Kokonaisarvo:</strong> €{{ stocks|sum(attribute="total_value") | default(0) | round(2) }}</p>
+
 <a href="/portfolios"><button>Takaisin portfolioihin</button></a>
 
 <hr style="margin: 20px 0; border: 1px solid #333;">
@@ -57,6 +60,7 @@
 <h2>Pikalisäys</h2>
 <p>Valitse osakkeita, joita haluat lisätä portfolioon.</p>
 <form action="/add_stock_to_portfolio" method="POST">
+    <input type="hidden" name="portfolio_id" value="{{ portfolio.id }}">
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
     <label for="stock_id">Valitse osake:</label>
     <select name="stock_id" required>
