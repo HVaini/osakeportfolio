@@ -4,6 +4,10 @@ table {
   font-size: 14px;
 }
 
+th {
+    text-align: left;
+}
+
 thead th {
   background-color: #333;
   color: white;
