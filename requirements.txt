@@ -5,6 +5,7 @@ charset-normalizer==3.4.0
 click==8.1.7
 Flask==3.1.0
 Flask-SQLAlchemy==3.1.1
+forex-python==1.8
 frozendict==2.4.6
 greenlet==3.1.1
 html5lib==1.1
@@ -23,6 +24,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2024.2
 requests==2.32.3
+simplejson==3.19.3
 six==1.16.0
 soupsieve==2.6
 SQLAlchemy==2.0.36
