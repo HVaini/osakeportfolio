@@ -48,8 +48,13 @@
     {% endfor %}
 </table>
 
-<h2>Portfolion kokonaisarvo</h2>
+
+<h2>Tiedot</h2>
 <p><strong>Kokonaisarvo:</strong> €{{ stocks|sum(attribute="total_value") | default(0) | round(2) }}</p>
+<p><strong>Kokonaistuotto/tappio:</strong> 
+    €{{ stocks|sum(attribute="stock_return") | default(0) | round(2) }}
+</p>
+
 
 <a href="/portfolios"><button>Takaisin portfolioihin</button></a>
 
