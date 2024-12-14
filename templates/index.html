@@ -4,12 +4,13 @@
 
 {% block content %}
 <h1>Tervetuloa portfoliosovellukseen</h1>
+<p>Luo ja hallinnoi sijoitussalkkuja sekä seuraa osakkeidesi arvon kehitystä.</p>
 {% if session.username %}
-    <p>Olet kirjautunut nimellä {{ session.username }}</p>
+    <p><strong>Olet kirjautunut nimellä {{ session.username }}<strong></p>
     <a href="/logout"><button>Kirjaudu ulos</button></a>
     <a href="/portfolios"><button>Portfoliot</button></a>
 {% else %}
-    <!-- Kirjautumislomake -->
+    <p><strong>Kirjaudu sisään tai luo uusi käyttäjätunnus päästäksesi alkuun.<strong></p>
     {% if error %}
     <p style="color: red;">{{ error }}</p>
     {% endif %}
@@ -21,7 +22,6 @@
         <input type="submit" value="Kirjaudu">
     </form>
     <hr>
-    <!-- Rekisteröintilomake -->
     <h3>Luo uusi käyttäjä</h3>
     {% if register_error %}
     <p style="color: red;">{{ register_error }}</p>
