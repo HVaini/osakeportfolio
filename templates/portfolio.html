@@ -20,18 +20,18 @@
         <td>{{ stock.symbol }}</td>
         <td>{{ stock.name }}</td>
         <td>{{ stock.total_quantity }}</td>
-        <td>{{ stock.average_price | default(0) | round(2) }}</td>
-        <td>
+        <td class="text-right">{{ stock.average_price | default(0) | round(2) }} €</td>
+        <td class="text-right">
             {% if stock.real_time_price is not none %}
-                {{ stock.real_time_price | round(2) }}
+                {{ stock.real_time_price | round(2) }} €
             {% else %}
                 Ei saatavilla
             {% endif %}
         </td>
-        <td>{{ stock.total_value | default(0) | round(2) }}</td>
-        <td>
+        <td class="text-right">{{ stock.total_value | default(0) | round(2) }} €</td>
+        <td class="text-right">
             {% if stock.stock_return is not none %}
-                {{ stock.stock_return | round(2) }}
+                {{ stock.stock_return | round(2) }} €
             {% else %}
                 Ei saatavilla
             {% endif %}

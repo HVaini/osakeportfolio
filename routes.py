@@ -59,9 +59,9 @@ def register():
     
     if len(username) < 3:
         return render_template("index.html", error="Käyttäjänimen tulee olla vähintään 3 merkkiä pitkä")
-    # testailun helpottamisen vuoksi salasanan minimipituus on vielä 3 merkkiä, muutetaan lopulliseen versioon
-    if len(password) < 3:
-        return render_template("index.html", error="Salasanan tulee olla vähintään 3 merkkiä pitkä")
+    
+    if len(password) < 8:
+        return render_template("index.html", error="Salasanan tulee olla vähintään 8 merkkiä pitkä")
 
     hashed_password = generate_password_hash(password)
     cursor = conn.cursor()
@@ -300,4 +300,3 @@ def remove_stock():
 
     
     return redirect(f"/portfolio/{portfolio_id}")
-
