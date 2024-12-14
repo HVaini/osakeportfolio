@@ -15,8 +15,8 @@ def init_app(database_connection):
 
 @routes.route("/")
 def index():
-    if "username" in session:
-        return redirect("/portfolios")
+    #if "username" in session:
+        #return redirect("/portfolios")
     return render_template("index.html")
 
 @routes.route("/login", methods=["POST"])
