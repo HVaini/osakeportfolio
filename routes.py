@@ -1,8 +1,10 @@
+from decimal import Decimal
+import secrets
+
 from flask import Blueprint, render_template, request, session, redirect, flash, abort
 from werkzeug.security import check_password_hash, generate_password_hash
-import secrets
-from decimal import Decimal
 import psycopg2
+
 from utils import get_stock_price
 
 routes = Blueprint('routes', __name__)
@@ -56,10 +58,10 @@ def register():
 
     if not username or not password:
         return render_template("index.html", error="Käyttäjänimi ja salasana ovat pakollisia")
-    
+
     if len(username) < 3:
         return render_template("index.html", error="Käyttäjänimen tulee olla vähintään 3 merkkiä pitkä")
-    
+
     if len(password) < 8:
         return render_template("index.html", error="Salasanan tulee olla vähintään 8 merkkiä pitkä")
 
@@ -86,7 +88,7 @@ def portfolios():
     global conn
     if "username" not in session:
         return redirect("/")
-    
+
     cursor = conn.cursor()
     cursor.execute("SELECT id, name FROM portfolios WHERE user_id = %s", (session["user_id"],))
     user_portfolios = cursor.fetchall()
@@ -103,7 +105,7 @@ def create_portfolio():
 
     if "username" not in session:
         return redirect("/")
-    
+
     name = request.form["name"]
 
     cursor = conn.cursor()
@@ -122,7 +124,7 @@ def portfolio(portfolio_id):
     global conn
     if "username" not in session:
         return redirect("/")
-    
+
     cursor = conn.cursor()
 
     # Hae portfolio
@@ -130,7 +132,7 @@ def portfolio(portfolio_id):
     portfolio = cursor.fetchone()
     if not portfolio:
         return redirect("/portfolios")
-    
+
     cursor.execute("""
         SELECT s.id, s.symbol, s.name, 
                SUM(t.quantity) AS total_quantity,
@@ -237,7 +239,7 @@ def stocks():
     global conn
     if "username" not in session:
         return redirect("/")
-    
+
     order_by = request.args.get("order_by", "name")
     order_direction = request.args.get("order_direction", "asc")
 
@@ -245,7 +247,7 @@ def stocks():
         order_by = "name"
     if order_direction not in ["asc", "desc"]:
         order_direction = "asc"
-    
+
     cursor = conn.cursor()
     cursor.execute(f"SELECT id, symbol, name, price FROM stocks ORDER BY {order_by} {order_direction}")
     stocks = cursor.fetchall()
@@ -298,5 +300,5 @@ def remove_stock():
     finally:
         cursor.close()
 
-    
+
     return redirect(f"/portfolio/{portfolio_id}")
